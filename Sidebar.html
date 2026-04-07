@@ -1,10 +1,800 @@
-<div class="sidebar">
-  <h2>Estructura</h2>
-  <p>Información sobre la estructura automática de A-G:</p>
-  <ul>
-    <li>Columna 1: Tipo de dato</li>
-    <li>Columna 2: Nombre de campo</li>
-    <li>Columna 3: Reglas de validación</li>
-    <li>Columna 4: Información adicional</li>
-  </ul>
-</div>
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      /* ═══════════════════ TOKENS ═══════════════════ */
+      :root {
+        --blue: #1a73e8;
+        --blue-hover: #1557b0;
+        --blue-soft: rgba(26,115,232,0.08);
+        --green: #1e8e3e;
+        --green-bg: #e6f4ea;
+        --green-border: #c4e7ce;
+        --red: #d93025;
+        --red-bg: #fce8e6;
+        --red-border: #f5c6c2;
+        --amber: #e37400;
+        --amber-bg: #fef7e0;
+        --amber-border: #fde293;
+        --bg: #f0f2f5;
+        --card: #ffffff;
+        --text: #1f1f1f;
+        --muted: #5f6368;
+        --border: #dadce0;
+        --radius: 10px;
+        --shadow: 0 1px 3px rgba(0,0,0,0.06);
+      }
+ 
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+      body {
+        font-family: 'DM Sans', system-ui, sans-serif;
+        background: var(--bg); color: var(--text);
+        display: flex; flex-direction: column; height: 100vh;
+        font-size: 13px; line-height: 1.5;
+      }
+ 
+      /* ═══════════════════ HEADER ═══════════════════ */
+      .header {
+        background: linear-gradient(135deg, #0d47a1 0%, #1a73e8 50%, #4285f4 100%);
+        color: white; padding: 20px 16px;
+      }
+      .header h2 { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+      .header p { font-size: 11px; margin-top: 4px; opacity: 0.85; padding-left: 28px; }
+ 
+      /* ═══════════════════ BADGE ═══════════════════ */
+      .badge {
+        margin: 10px 14px 0; padding: 10px 14px; border-radius: 8px;
+        font-size: 12px; line-height: 1.5; display: none;
+        animation: fadeSlide 0.3s ease;
+      }
+      .badge.ok    { background: var(--green-bg);  border: 1px solid var(--green-border);  color: var(--green); }
+      .badge.warn  { background: var(--amber-bg);  border: 1px solid var(--amber-border);  color: var(--amber); }
+      .badge.error { background: var(--red-bg);    border: 1px solid var(--red-border);    color: var(--red);   }
+      .badge b { font-weight: 600; }
+ 
+      /* ═══════════════════ TABS ═══════════════════ */
+      .tabs {
+        display: flex; background: var(--card);
+        border-bottom: 1px solid var(--border); padding: 0 6px;
+        position: sticky; top: 0; z-index: 10;
+      }
+      .tab {
+        flex: 1; text-align: center; padding: 11px 4px;
+        font-size: 12px; font-weight: 600; color: var(--muted);
+        cursor: pointer; border-bottom: 2.5px solid transparent;
+        transition: all 0.2s; user-select: none;
+      }
+      .tab:hover { color: var(--blue); background: var(--blue-soft); }
+      .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+ 
+      /* ═══════════════════ MAIN ═══════════════════ */
+      .main { flex: 1; overflow-y: auto; padding: 14px; }
+      .panel { display: none; animation: fadeSlide 0.25s ease; }
+      .panel.active { display: block; }
+      @keyframes fadeSlide {
+        from { opacity: 0; transform: translateY(4px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+ 
+      /* ═══════════════════ CARDS ═══════════════════ */
+      .card {
+        background: var(--card); border: 1px solid var(--border);
+        border-radius: var(--radius); padding: 14px;
+        margin-bottom: 12px; box-shadow: var(--shadow);
+      }
+      .card-label {
+        font-size: 10px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.6px; color: var(--muted); margin-bottom: 10px;
+      }
+ 
+      /* ═══════════════════ FORM ELEMENTS ═══════════════════ */
+      label.fl { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #3c4043; }
+      .hint { font-size: 11px; color: #888; margin-top: 3px; line-height: 1.4; }
+ 
+      input[type="text"], input[type="number"], textarea, select {
+        width: 100%; padding: 9px 10px; border: 1px solid var(--border);
+        border-radius: 6px; font-size: 13px; font-family: inherit;
+        background: #f8f9fa; transition: border 0.2s, box-shadow 0.2s;
+      }
+      input:focus, textarea:focus, select:focus {
+        outline: none; border-color: var(--blue); background: #fff;
+        box-shadow: 0 0 0 2px rgba(26,115,232,0.15);
+      }
+      textarea { resize: vertical; min-height: 50px; }
+ 
+      select { cursor: pointer; appearance: auto; }
+      select.multi { height: auto; min-height: 80px; }
+ 
+      .fg { margin-bottom: 14px; }
+      .fg:last-child { margin-bottom: 0; }
+ 
+      /* ═══════════════════ REQUIRED DOT ═══════════════════ */
+      .req::after { content: ' *'; color: var(--red); font-weight: 400; }
+ 
+      /* ═══════════════════ TOGGLE ═══════════════════ */
+      .tog {
+        display: flex; align-items: flex-start; justify-content: space-between;
+        gap: 10px; padding: 9px 0;
+      }
+      .tog + .tog { border-top: 1px solid #f1f3f4; }
+      .tog-text { flex: 1; }
+      .tog-text b { display: block; font-size: 13px; margin-bottom: 1px; }
+      .tog-text span { display: block; font-size: 11px; color: var(--muted); line-height: 1.35; }
+ 
+      .sw { position: relative; display: inline-block; width: 34px; height: 18px; flex-shrink: 0; margin-top: 3px; }
+      .sw input { opacity: 0; width: 0; height: 0; }
+      .sl {
+        position: absolute; cursor: pointer; inset: 0;
+        background: #bbb; border-radius: 18px; transition: 0.25s;
+      }
+      .sl::before {
+        content: ""; position: absolute; width: 14px; height: 14px;
+        left: 2px; bottom: 2px; background: white; border-radius: 50%;
+        transition: 0.25s; box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+      }
+      input:checked + .sl { background: var(--blue); }
+      input:checked + .sl::before { transform: translateX(16px); }
+ 
+      /* ═══════════════════ COLOR PICKER ═══════════════════ */
+      .cp-row { display: flex; align-items: center; gap: 10px; }
+      input[type="color"] {
+        -webkit-appearance: none; border: none; width: 34px; height: 34px;
+        border-radius: 50%; cursor: pointer; padding: 0; background: none;
+      }
+      input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+      input[type="color"]::-webkit-color-swatch { border: 2px solid var(--border); border-radius: 50%; }
+      .cp-hex { font-family: 'SF Mono', monospace; font-size: 12px; color: var(--muted); }
+ 
+      /* ═══════════════════ FOOTER ═══════════════════ */
+      .footer {
+        padding: 12px 14px; background: var(--card);
+        border-top: 1px solid var(--border);
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
+      }
+ 
+      .btn {
+        border: none; border-radius: 6px; padding: 11px; width: 100%;
+        font-size: 14px; font-weight: 600; cursor: pointer;
+        display: flex; justify-content: center; align-items: center; gap: 8px;
+        transition: all 0.2s; font-family: inherit;
+      }
+      .btn-primary { background: var(--blue); color: white; }
+      .btn-primary:hover { background: var(--blue-hover); box-shadow: 0 2px 6px rgba(26,115,232,0.25); }
+      .btn-primary:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
+ 
+      .btn-outline {
+        background: transparent; color: var(--blue);
+        border: 1px solid var(--blue); margin-top: 8px;
+        font-size: 13px; padding: 9px;
+      }
+      .btn-outline:hover { background: var(--blue-soft); }
+ 
+      .btn-ghost {
+        background: transparent; color: var(--muted);
+        font-size: 12px; padding: 8px; margin-top: 6px;
+        border: none;
+      }
+      .btn-ghost:hover { color: var(--blue); }
+ 
+      /* ═══════════════════ PREVIEW BTN ═══════════════════ */
+      .preview-row {
+        display: flex; gap: 8px; margin-top: 8px;
+      }
+      .preview-row .btn { flex: 1; font-size: 12px; padding: 8px; }
+ 
+      /* ═══════════════════ LOADER ═══════════════════ */
+      #secLoader { display: none; text-align: center; padding: 50px 20px; }
+      .spin {
+        border: 3px solid rgba(26,115,232,0.12); border-left-color: var(--blue);
+        border-radius: 50%; width: 38px; height: 38px;
+        animation: sp 0.7s linear infinite; margin: 0 auto;
+      }
+      @keyframes sp { to { transform: rotate(360deg); } }
+      .loader-msg { margin-top: 16px; font-size: 14px; font-weight: 600; color: var(--blue); }
+      .loader-sub { font-size: 12px; color: #666; margin-top: 4px; transition: opacity 0.2s; }
+ 
+      /* ═══════════════════ RESULT ═══════════════════ */
+      #secResult { display: none; }
+      .res-panel { padding: 20px; border-radius: var(--radius); font-size: 13px; }
+      .res-panel.ok  { background: var(--green-bg); border: 1px solid var(--green-border); }
+      .res-panel.err { background: var(--red-bg);   border: 1px solid var(--red-border);   }
+ 
+      .res-icon { text-align: center; font-size: 36px; margin-bottom: 6px; }
+      .res-title { display: block; text-align: center; font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+      .res-stats { text-align: center; font-size: 13px; margin-bottom: 16px; }
+ 
+      .link-btn {
+        display: flex; justify-content: center; align-items: center; gap: 6px;
+        margin-top: 8px; padding: 10px; border-radius: 6px;
+        text-decoration: none; font-weight: 600; font-size: 13px; transition: 0.2s;
+      }
+      .link-edit { background: white; border: 1px solid var(--border); color: var(--text); }
+      .link-edit:hover { background: #f1f3f4; }
+      .link-view { background: var(--blue); color: white; }
+      .link-view:hover { background: var(--blue-hover); }
+ 
+      /* ═══════════════════ LOG PANEL ═══════════════════ */
+      .log-wrap {
+        margin-top: 14px; padding: 10px;
+        background: #f8f9fa; border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+      .log-wrap summary { font-size: 12px; font-weight: 600; cursor: pointer; color: var(--muted); }
+      .log-list {
+        margin: 6px 0 0; padding: 0; list-style: none;
+        max-height: 180px; overflow-y: auto;
+        font-size: 10.5px; font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.7;
+      }
+      .log-list li { padding: 1px 4px; border-radius: 3px; word-break: break-word; }
+      .log-list li:nth-child(odd) { background: #eef0f2; }
+    </style>
+  </head>
+  <body>
+ 
+    <!-- ═══════ HEADER ═══════ -->
+    <div class="header">
+      <h2>⚡ Creador Pro</h2>
+      <p>Convierte cualquier CSV en un Google Form</p>
+    </div>
+ 
+    <!-- ═══════ BADGE ═══════ -->
+    <div id="badge" class="badge"></div>
+ 
+    <!-- ═══════ TABS ═══════ -->
+    <div class="tabs" id="navTabs">
+      <div class="tab active" onclick="switchTab('pMapeo',this)">🔗 Mapeo</div>
+      <div class="tab" onclick="switchTab('pConfig',this)">📝 General</div>
+      <div class="tab" onclick="switchTab('pAjustes',this)">⚙️ Ajustes</div>
+      <div class="tab" onclick="switchTab('pExtra',this)">🎨 Extra</div>
+    </div>
+ 
+    <!-- ═══════ MAIN ═══════ -->
+    <div class="main">
+ 
+      <!-- ── TAB 1: MAPEO DE COLUMNAS ── -->
+      <div id="pMapeo" class="panel active">
+        <div class="card">
+          <p class="card-label">Campos obligatorios</p>
+ 
+          <div class="fg">
+            <label class="fl req">Columna de Pregunta</label>
+            <select id="colPregunta"><option value="-1">— Cargando columnas… —</option></select>
+            <span class="hint">Selecciona la columna que contiene el texto de las preguntas.</span>
+          </div>
+ 
+          <div class="fg">
+            <label class="fl req">Columnas de Opciones</label>
+            <select id="colOpciones" multiple class="multi"></select>
+            <span class="hint">Mantén Ctrl/⌘ para seleccionar varias columnas con las opciones de respuesta.</span>
+          </div>
+ 
+          <div class="fg">
+            <label class="fl">Columna de Respuesta Correcta</label>
+            <select id="colCorrecta"><option value="-1">— No asignada —</option></select>
+            <span class="hint">La celda debe coincidir exactamente con una de las opciones.</span>
+          </div>
+        </div>
+ 
+        <div class="card">
+          <p class="card-label">Campos opcionales</p>
+ 
+          <div class="fg">
+            <label class="fl">Columna de Tipo de Pregunta</label>
+            <select id="colTipo"><option value="-1">— No asignada (usar default) —</option></select>
+            <span class="hint">Valores: test, casillas, texto, parrafo, desplegable.</span>
+          </div>
+ 
+          <div class="fg">
+            <label class="fl">Columna de Puntos</label>
+            <select id="colPuntos"><option value="-1">— No asignada (usar default) —</option></select>
+          </div>
+ 
+          <div class="fg">
+            <label class="fl">Columna de Descripción</label>
+            <select id="colDescripcion"><option value="-1">— No asignada —</option></select>
+            <span class="hint">Texto de ayuda que aparece debajo de la pregunta.</span>
+          </div>
+ 
+          <div class="fg">
+            <label class="fl">Columna Feedback Correcto</label>
+            <select id="colFeedbackOk"><option value="-1">— No asignada —</option></select>
+          </div>
+ 
+          <div class="fg">
+            <label class="fl">Columna Feedback Incorrecto</label>
+            <select id="colFeedbackFail"><option value="-1">— No asignada —</option></select>
+          </div>
+        </div>
+ 
+        <!-- Preview -->
+        <div class="preview-row">
+          <button type="button" class="btn btn-outline" onclick="ejecutarPreview()">
+            🔍 Previsualizar
+          </button>
+        </div>
+        <div id="previewResult" style="margin-top:8px;font-size:12px;display:none;"></div>
+      </div>
+ 
+      <!-- ── TAB 2: GENERAL ── -->
+      <div id="pConfig" class="panel">
+        <div class="card">
+          <div class="fg">
+            <label class="fl req" for="nombreFormulario">Título del Cuestionario</label>
+            <input type="text" id="nombreFormulario" placeholder="Ej. Examen de Redes — Tema 4" required>
+          </div>
+          <div class="fg">
+            <label class="fl" for="mensajeAgradecimiento">Mensaje al Finalizar</label>
+            <textarea id="mensajeAgradecimiento" placeholder="Ej. ¡Enhorabuena! Las notas se publicarán mañana."></textarea>
+            <span class="hint">Déjalo en blanco para el mensaje predeterminado.</span>
+          </div>
+        </div>
+ 
+        <div class="card">
+          <div class="tog">
+            <div class="tog-text">
+              <b>Datos del Alumno</b>
+              <span>Primera página con Nombre y Grupo obligatorios.</span>
+            </div>
+            <label class="sw"><input type="checkbox" id="pedirDatosAlumno" checked><span class="sl"></span></label>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- ── TAB 3: AJUSTES ── -->
+      <div id="pAjustes" class="panel">
+        <div class="card">
+          <p class="card-label">Comportamiento</p>
+ 
+          <div class="tog">
+            <div class="tog-text">
+              <b>Pregunta por Página</b>
+              <span>Cada pregunta en una página separada.</span>
+            </div>
+            <label class="sw"><input type="checkbox" id="preguntaPorPagina"><span class="sl"></span></label>
+          </div>
+ 
+          <div class="tog">
+            <div class="tog-text">
+              <b>Barajar Preguntas</b>
+              <span>Orden aleatorio para cada alumno.</span>
+            </div>
+            <label class="sw"><input type="checkbox" id="barajarPreguntas" checked><span class="sl"></span></label>
+          </div>
+ 
+          <div class="tog">
+            <div class="tog-text">
+              <b>Preguntas Obligatorias</b>
+              <span>El alumno debe responder todas.</span>
+            </div>
+            <label class="sw"><input type="checkbox" id="preguntasObligatorias" checked><span class="sl"></span></label>
+          </div>
+ 
+          <div class="tog">
+            <div class="tog-text">
+              <b>Limitar a 1 respuesta</b>
+              <span>Solo permite un envío por cuenta de Google.</span>
+            </div>
+            <label class="sw"><input type="checkbox" id="limitarUnaRespuesta"><span class="sl"></span></label>
+          </div>
+ 
+          <div class="tog">
+            <div class="tog-text">
+              <b>Permitir editar respuestas</b>
+              <span>El alumno puede modificar después de enviar.</span>
+            </div>
+            <label class="sw"><input type="checkbox" id="permitirEditar"><span class="sl"></span></label>
+          </div>
+        </div>
+ 
+        <div class="card">
+          <p class="card-label">Filtro de filas</p>
+          <div class="fg">
+            <label class="fl">Desde fila</label>
+            <input type="number" id="filaDesde" min="0" value="0" placeholder="0 = todas">
+            <span class="hint">Número de fila en la hoja (2 = primera fila de datos). 0 = procesar todas.</span>
+          </div>
+          <div class="fg">
+            <label class="fl">Hasta fila</label>
+            <input type="number" id="filaHasta" min="0" value="0" placeholder="0 = hasta el final">
+          </div>
+        </div>
+      </div>
+ 
+      <!-- ── TAB 4: EXTRA ── -->
+      <div id="pExtra" class="panel">
+        <div class="card">
+          <p class="card-label">Puntuación</p>
+          <div class="fg">
+            <label class="fl">Puntos por defecto</label>
+            <input type="number" id="puntosDefault" value="1" min="0" max="100">
+            <span class="hint">Se usa cuando la columna de puntos está vacía o no asignada.</span>
+          </div>
+ 
+          <div class="fg">
+            <label class="fl">Tipo de pregunta por defecto</label>
+            <select id="tipoPreguntaDefault">
+              <option value="test" selected>Test (opción múltiple)</option>
+              <option value="casillas">Casillas (varias correctas)</option>
+              <option value="texto">Texto corto</option>
+              <option value="parrafo">Párrafo largo</option>
+              <option value="desplegable">Desplegable</option>
+            </select>
+            <span class="hint">Se usa cuando la columna de tipo no está asignada o la celda está vacía.</span>
+          </div>
+        </div>
+ 
+        <div class="card">
+          <p class="card-label">Apariencia</p>
+          <div class="fg">
+            <label class="fl">Color del Tema</label>
+            <div class="cp-row">
+              <input type="color" id="colorTema" value="#673AB7" oninput="document.getElementById('cpHex').textContent=this.value.toUpperCase()">
+              <span class="cp-hex" id="cpHex">#673AB7</span>
+            </div>
+            <span class="hint">Google Forms aplica la paleta más cercana disponible.</span>
+          </div>
+ 
+          <div class="tog">
+            <div class="tog-text">
+              <b>Barra de Progreso</b>
+              <span>Muestra al alumno cuánto le queda.</span>
+            </div>
+            <label class="sw"><input type="checkbox" id="barraProgreso" checked><span class="sl"></span></label>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- ═══════ LOADER ═══════ -->
+      <div id="secLoader">
+        <div class="spin"></div>
+        <p class="loader-msg">Generando formulario…</p>
+        <p class="loader-sub" id="loaderSub">Leyendo hoja de cálculo…</p>
+      </div>
+ 
+      <!-- ═══════ RESULTADO ═══════ -->
+      <div id="secResult"></div>
+    </div>
+ 
+    <!-- ═══════ FOOTER ═══════ -->
+    <div class="footer" id="footer">
+      <button type="button" class="btn btn-primary" id="btnGenerar" onclick="lanzarGeneracion()">
+        🚀 Generar Formulario
+      </button>
+    </div>
+ 
+    <!-- ═══════════════════ JAVASCRIPT ═══════════════════ -->
+    <script>
+      /* ─── Estado ─── */
+      var headersGlobal = [];
+      var loadInterval = null;
+ 
+      /* ─── Init: cargar encabezados ─── */
+      (function() {
+        google.script.run
+          .withSuccessHandler(onHeaders)
+          .withFailureHandler(function() { showBadge('error', '⚠️ No se pudo leer la hoja.'); })
+          .obtenerEncabezados();
+      })();
+ 
+      function onHeaders(info) {
+        headersGlobal = info.headers || [];
+        var badge = document.getElementById('badge');
+ 
+        if (headersGlobal.length === 0) {
+          showBadge('error', '<b>Hoja vacía.</b> Importa un CSV o añade datos primero.');
+          document.getElementById('btnGenerar').disabled = true;
+          return;
+        }
+ 
+        showBadge('ok', '✅ <b>' + info.totalFilas + ' filas</b> en "' + esc(info.nombreHoja) + '" — ' + headersGlobal.length + ' columnas detectadas');
+ 
+        // Poblar todos los selects
+        var selects = ['colPregunta','colCorrecta','colTipo','colPuntos','colDescripcion','colFeedbackOk','colFeedbackFail'];
+        selects.forEach(function(id) {
+          var sel = document.getElementById(id);
+          sel.innerHTML = '<option value="-1">— No asignada —</option>';
+          headersGlobal.forEach(function(h, idx) {
+            var opt = document.createElement('option');
+            opt.value = idx;
+            opt.textContent = h;
+            sel.appendChild(opt);
+          });
+        });
+ 
+        // Poblar multi-select de opciones
+        var selOpc = document.getElementById('colOpciones');
+        selOpc.innerHTML = '';
+        headersGlobal.forEach(function(h, idx) {
+          var opt = document.createElement('option');
+          opt.value = idx;
+          opt.textContent = h;
+          selOpc.appendChild(opt);
+        });
+ 
+        // Auto-detectar columnas por nombre conocido
+        autoDetectar();
+      }
+ 
+      /* ─── Auto-detección inteligente ─── */
+      function autoDetectar() {
+        var lower = headersGlobal.map(function(h) { return h.toLowerCase(); });
+ 
+        // Pregunta
+        var iPregunta = buscar(lower, ['pregunta','titulo','question','enunciado']);
+        if (iPregunta >= 0) document.getElementById('colPregunta').value = iPregunta;
+ 
+        // Correcta
+        var iCorrecta = buscar(lower, ['respuesta correcta','correcta','answer','correct']);
+        if (iCorrecta >= 0) document.getElementById('colCorrecta').value = iCorrecta;
+ 
+        // Tipo
+        var iTipo = buscar(lower, ['tipo','type','formato']);
+        if (iTipo >= 0) document.getElementById('colTipo').value = iTipo;
+ 
+        // Puntos
+        var iPuntos = buscar(lower, ['puntos','puntuacion','points','score']);
+        if (iPuntos >= 0) document.getElementById('colPuntos').value = iPuntos;
+ 
+        // Descripción
+        var iDesc = buscar(lower, ['descripcion','descripción','description','detalle']);
+        if (iDesc >= 0) document.getElementById('colDescripcion').value = iDesc;
+ 
+        // Feedback
+        var iFbOk = buscar(lower, ['feedback correcto','comentario acierto']);
+        if (iFbOk >= 0) document.getElementById('colFeedbackOk').value = iFbOk;
+ 
+        var iFbFail = buscar(lower, ['feedback incorrecto','comentario fallo']);
+        if (iFbFail >= 0) document.getElementById('colFeedbackFail').value = iFbFail;
+ 
+        // Opciones (auto: columnas que contienen opción/opcion/opt)
+        var selOpc = document.getElementById('colOpciones');
+        for (var i = 0; i < lower.length; i++) {
+          if (lower[i].indexOf('opción') !== -1 || lower[i].indexOf('opcion') !== -1 || lower[i].indexOf('opt') !== -1) {
+            selOpc.options[i].selected = true;
+          }
+        }
+      }
+ 
+      function buscar(arr, keywords) {
+        for (var i = 0; i < arr.length; i++) {
+          for (var k = 0; k < keywords.length; k++) {
+            if (arr[i].indexOf(keywords[k]) !== -1) return i;
+          }
+        }
+        return -1;
+      }
+ 
+      /* ─── Tabs ─── */
+      function switchTab(panelId, tabEl) {
+        document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+        document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+        document.getElementById(panelId).classList.add('active');
+        tabEl.classList.add('active');
+      }
+ 
+      /* ─── Preview ─── */
+      function ejecutarPreview() {
+        var config = recopilarConfig();
+        var div = document.getElementById('previewResult');
+        div.style.display = 'block';
+        div.innerHTML = '<span style="color:var(--muted);">Analizando…</span>';
+ 
+        google.script.run
+          .withSuccessHandler(function(r) {
+            if (r.validas > 0) {
+              var html = '<span style="color:var(--green);">✅ <b>' + r.validas + '</b> preguntas válidas.</span>';
+              if (r.problemas.length > 0) {
+                html += '<br><span style="color:var(--amber);">⚠️ ' + r.problemas.length + ' con problemas:</span>';
+                html += '<ul style="margin:4px 0 0 14px;padding:0;font-size:11px;color:#666;">';
+                var max = Math.min(r.problemas.length, 5);
+                for (var i = 0; i < max; i++) {
+                  html += '<li>' + esc(r.problemas[i]) + '</li>';
+                }
+                if (r.problemas.length > 5) html += '<li>… y ' + (r.problemas.length - 5) + ' más</li>';
+                html += '</ul>';
+              }
+              div.innerHTML = html;
+            } else {
+              div.innerHTML = '<span style="color:var(--red);">❌ Ninguna pregunta válida. ' +
+                (r.problemas.length > 0 ? esc(r.problemas[0]) : 'Revisa el mapeo.') + '</span>';
+            }
+          })
+          .withFailureHandler(function(e) {
+            div.innerHTML = '<span style="color:var(--red);">Error: ' + esc(e.message) + '</span>';
+          })
+          .previsualizarMapeo(config);
+      }
+ 
+      /* ─── Recopilar config ─── */
+      function recopilarConfig() {
+        // Opciones multi-select
+        var selOpc = document.getElementById('colOpciones');
+        var opciones = [];
+        for (var i = 0; i < selOpc.options.length; i++) {
+          if (selOpc.options[i].selected) opciones.push(parseInt(selOpc.options[i].value, 10));
+        }
+ 
+        return {
+          nombreFormulario:      document.getElementById('nombreFormulario').value,
+          mensajeAgradecimiento: document.getElementById('mensajeAgradecimiento').value,
+          tipoPreguntaDefault:   document.getElementById('tipoPreguntaDefault').value,
+          puntosDefault:         document.getElementById('puntosDefault').value,
+          colorTema:             document.getElementById('colorTema').value,
+          barraProgreso:         document.getElementById('barraProgreso').checked,
+          barajarPreguntas:      document.getElementById('barajarPreguntas').checked,
+          preguntasObligatorias: document.getElementById('preguntasObligatorias').checked,
+          pedirDatosAlumno:      document.getElementById('pedirDatosAlumno').checked,
+          preguntaPorPagina:     document.getElementById('preguntaPorPagina').checked,
+          limitarUnaRespuesta:   document.getElementById('limitarUnaRespuesta').checked,
+          permitirEditar:        document.getElementById('permitirEditar').checked,
+          filaDesde:             document.getElementById('filaDesde').value,
+          filaHasta:             document.getElementById('filaHasta').value,
+          colPregunta:           document.getElementById('colPregunta').value,
+          colOpciones:           opciones,
+          colCorrecta:           document.getElementById('colCorrecta').value,
+          colPuntos:             document.getElementById('colPuntos').value,
+          colTipo:               document.getElementById('colTipo').value,
+          colDescripcion:        document.getElementById('colDescripcion').value,
+          colFeedbackOk:         document.getElementById('colFeedbackOk').value,
+          colFeedbackFail:       document.getElementById('colFeedbackFail').value
+        };
+      }
+ 
+      /* ─── Generación ─── */
+      function lanzarGeneracion() {
+        // Validar mínimo
+        if (document.getElementById('colPregunta').value === '-1') {
+          showBadge('error', '⚠️ Debes asignar al menos la <b>columna de Pregunta</b> en la pestaña Mapeo.');
+          switchTab('pMapeo', document.querySelectorAll('.tab')[0]);
+          return;
+        }
+ 
+        var config = recopilarConfig();
+ 
+        // UI → loader
+        hide('footer'); hide('navTabs'); hide('badge');
+        document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+        show('secLoader');
+        animarLoader();
+ 
+        google.script.run
+          .withSuccessHandler(onExito)
+          .withFailureHandler(onErrorCritico)
+          .generarFormularioDesdeHoja(config);
+      }
+ 
+      /* ─── Loader animado ─── */
+      var pasos = [
+        'Leyendo hoja de cálculo…',
+        'Validando mapeo de columnas…',
+        'Creando formulario en Google Forms…',
+        'Insertando preguntas y feedback…',
+        'Organizando archivos en Drive…'
+      ];
+      var pasoIdx = 0;
+ 
+      function animarLoader() {
+        pasoIdx = 0;
+        document.getElementById('loaderSub').textContent = pasos[0];
+        loadInterval = setInterval(function() {
+          pasoIdx++;
+          if (pasoIdx < pasos.length) {
+            var el = document.getElementById('loaderSub');
+            el.style.opacity = 0;
+            setTimeout(function() {
+              el.textContent = pasos[pasoIdx];
+              el.style.opacity = 1;
+            }, 150);
+          }
+        }, 2200);
+      }
+ 
+      function pararLoader() { if (loadInterval) clearInterval(loadInterval); }
+ 
+      /* ─── Éxito ─── */
+      function onExito(r) {
+        pararLoader();
+        hide('secLoader');
+        var div = document.getElementById('secResult');
+        show('secResult');
+ 
+        if (r.success) {
+          var tipoStr = '';
+          if (r.porTipo) {
+            var partes = [];
+            for (var k in r.porTipo) partes.push(k + ': ' + r.porTipo[k]);
+            tipoStr = '<span style="font-size:11px;color:#555;">(' + partes.join(' · ') + ')</span>';
+          }
+ 
+          var logHtml = '';
+          if (r.log && r.log.length) {
+            logHtml = '<div class="log-wrap"><details><summary>📋 Auditoría (' + r.log.length + ')</summary>' +
+              '<ul class="log-list">' + r.log.map(function(l) { return '<li>' + esc(l) + '</li>'; }).join('') +
+              '</ul></details></div>';
+          }
+ 
+          div.innerHTML =
+            '<div class="res-panel ok">' +
+              '<div class="res-icon">🎉</div>' +
+              '<b class="res-title" style="color:#0d652d;">¡Formulario Creado!</b>' +
+              '<p class="res-stats" style="color:var(--green);">' +
+                '<b>' + r.count + '</b> preguntas' +
+                (r.omitidas > 0 ? ' · <b>' + r.omitidas + '</b> omitidas' : '') +
+                '<br>' + tipoStr +
+              '</p>' +
+              '<a href="' + r.editUrl + '" target="_blank" class="link-btn link-edit">✏️ Editar Cuestionario</a>' +
+              '<a href="' + r.publishedUrl + '" target="_blank" class="link-btn link-view">👁️ Vista de Alumno</a>' +
+              logHtml +
+              '<button class="btn btn-outline" onclick="reiniciar()" style="margin-top:14px;">Crear otro cuestionario</button>' +
+            '</div>';
+        } else {
+          var logErr = '';
+          if (r.log && r.log.length) {
+            logErr = '<div class="log-wrap"><details open><summary>📋 Auditoría</summary>' +
+              '<ul class="log-list">' + r.log.map(function(l) { return '<li>' + esc(l) + '</li>'; }).join('') +
+              '</ul></details></div>';
+          }
+          div.innerHTML =
+            '<div class="res-panel err">' +
+              '<div class="res-icon">⚠️</div>' +
+              '<b class="res-title" style="color:var(--red);">Error en la generación</b>' +
+              '<p style="margin:8px 0;color:var(--red);">' + esc(r.error) + '</p>' +
+              logErr +
+              '<button class="btn btn-outline" onclick="reiniciar()">Volver y corregir</button>' +
+            '</div>';
+        }
+      }
+ 
+      /* ─── Error crítico ─── */
+      function onErrorCritico(err) {
+        pararLoader();
+        hide('secLoader');
+        var div = document.getElementById('secResult');
+        show('secResult');
+        div.innerHTML =
+          '<div class="res-panel err">' +
+            '<div class="res-icon">🚨</div>' +
+            '<b class="res-title" style="color:var(--red);">Fallo de conexión</b>' +
+            '<p style="margin:8px 0;">' + esc(err.message) + '</p>' +
+            '<button class="btn btn-outline" onclick="reiniciar()">Reintentar</button>' +
+          '</div>';
+      }
+ 
+      /* ─── Reiniciar ─── */
+      function reiniciar() {
+        hide('secResult');
+        document.getElementById('secResult').innerHTML = '';
+        show('footer'); show('navTabs'); show('badge');
+ 
+        // Restaurar primera pestaña
+        document.getElementById('pMapeo').classList.add('active');
+        var tabs = document.querySelectorAll('.tab');
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        tabs[0].classList.add('active');
+ 
+        // Recargar encabezados
+        google.script.run.withSuccessHandler(onHeaders).obtenerEncabezados();
+      }
+ 
+      /* ─── Helpers ─── */
+      function show(id) { document.getElementById(id).style.display = ''; }
+      function hide(id) { document.getElementById(id).style.display = 'none'; }
+ 
+      function showBadge(type, html) {
+        var b = document.getElementById('badge');
+        b.className = 'badge ' + type;
+        b.innerHTML = html;
+        b.style.display = 'block';
+      }
+ 
+      function esc(s) {
+        var d = document.createElement('div');
+        d.appendChild(document.createTextNode(s || ''));
+        return d.innerHTML;
+      }
+    </script>
+  </body>
+</html>
